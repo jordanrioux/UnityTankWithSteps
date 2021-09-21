@@ -411,5 +411,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tank
       objectReference: {fileID: 0}
+    - target: {fileID: 7408083380807315620, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
+      propertyPath: playerNumber
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
