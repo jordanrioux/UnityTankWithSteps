@@ -4,7 +4,7 @@ The `1/tank-creation` starts from the `master` branch code. The steps will guide
 
 The resulting tank will be able to move via a custom script and play corresponding audio clips based on its movement.
 
-# Steps
+# Steps that have already been done
 
 1. Change the **Tank** object (if not created, you can simply drag the **Tank** model from the **Models** folder into the **Hierarchy** panel):
     * Set the **Layer** to **Players** (create a new layer)
@@ -65,7 +65,6 @@ private void OnEnable()
     _movementInputValue = 0f;
     _turnInputValue = 0f;
 }
-
 
 private void OnDisable ()
 {
