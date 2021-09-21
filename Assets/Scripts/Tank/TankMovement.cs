@@ -29,7 +29,7 @@ namespace Tank
             _turnInputValue = 0f;
         }
 
-        private void OnDisable ()
+        private void OnDisable()
         {
             _rigidbody.isKinematic = true;
         }
