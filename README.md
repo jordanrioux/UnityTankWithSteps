@@ -18,8 +18,10 @@ The `4/shells` starts from the `3/tank-health` branch code. The steps will guide
     * **Audio Clip** to **ShellExplosion**
     * Uncheck **Play on Awake**
 8. Add a **Particle System** component to **ShellExplosion** and set:
+    * Make sure **Position** is set to (0, 0, 0)
     * **Duration** to 1.50
     * Uncheck **Looping**
+    * Uncheck **Play on Awake**
     * **Start Delay** to 0
     * **Start Lifetime** to 1.5
     * **Start Speed** to 2
