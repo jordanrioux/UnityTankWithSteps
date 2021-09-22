@@ -80,6 +80,7 @@ private void Update()
 20. Add a **Particle System** component to **TankExplosion** and set:
     * **Duration** to 1.05
     * Uncheck **Looping**
+    * Uncheck **Play on Awake**
     * **Start Delay** to 0.15
     * **Start Lifetime** to 0.9
     * **Start Speed** to 20
