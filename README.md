@@ -34,7 +34,7 @@ The `5/tank-shooting` starts from the `4/shells` branch code. The steps will gui
 
 The serialized and private fields
 ```csharp
- [SerializeField] private Rigidbody shell;
+[SerializeField] private Rigidbody shell;
 [SerializeField] private Transform fireTransform;
 
 [SerializeField] private AudioSource shootingAudio;
