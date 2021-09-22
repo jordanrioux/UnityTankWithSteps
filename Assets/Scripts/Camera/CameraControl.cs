@@ -1,74 +1,77 @@
 using System.Linq;
 using UnityEngine;
 
-public class CameraControl : MonoBehaviour
+namespace Camera
 {
-    [SerializeField] private float dampTime = 0.2f;
-    [SerializeField] private float screenEdgeBuffer = 4f;
-    [SerializeField] private float minSize = 6.5f;
-    [SerializeField] private Transform[] targets;
-
-    private UnityEngine.Camera _camera;
-    private float _zoomSpeed;
-    private Vector3 _moveVelocity;
-
-    private void Awake()
+    public class CameraControl : MonoBehaviour
     {
-        _camera = GetComponentInChildren<UnityEngine.Camera>();
-    }
+        [SerializeField] private float dampTime = 0.2f;
+        [SerializeField] private float screenEdgeBuffer = 4f;
+        [SerializeField] private float minSize = 6.5f;
+        [SerializeField] private Transform[] targets;
 
-    private void FixedUpdate()
-    {
-        var desiredPosition = CenterOnTargets();
-        ZoomOnTargetsFromPosition(desiredPosition);
-    }
+        private UnityEngine.Camera _camera;
+        private float _zoomSpeed;
+        private Vector3 _moveVelocity;
 
-    private Vector3 CenterOnTargets()
-    {
-        var desiredPosition = FindTargetsAveragePosition();
-        transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _moveVelocity, dampTime);
-        return desiredPosition;
-    }
+        private void Awake()
+        {
+            _camera = GetComponentInChildren<UnityEngine.Camera>();
+        }
 
-    private Vector3 FindTargetsAveragePosition()
-    {
-        var averagePos = targets.Aggregate(new Vector3(), (seed, target) => seed + target.position) / targets.Length;
-        averagePos.y = transform.position.y;
-        return averagePos;
-    }
+        private void FixedUpdate()
+        {
+            var desiredPosition = CenterOnTargets();
+            ZoomOnTargetsFromPosition(desiredPosition);
+        }
 
-    private void ZoomOnTargetsFromPosition(Vector3 desiredPosition)
-    {
-        var requiredSize = FindCameraRequiredSize(desiredPosition);
-        _camera.orthographicSize = Mathf.SmoothDamp(_camera.orthographicSize, requiredSize, ref _zoomSpeed, dampTime);
-    }
+        private Vector3 CenterOnTargets()
+        {
+            var desiredPosition = FindTargetsAveragePosition();
+            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _moveVelocity, dampTime);
+            return desiredPosition;
+        }
 
-    private float FindCameraRequiredSize(Vector3 desiredPosition)
-    {
-        var desiredLocalPos = transform.InverseTransformPoint(desiredPosition);
-        var size = targets.Max(target => FindTargetDistanceAsSize(target, desiredLocalPos));
-        size += screenEdgeBuffer;
-        size = Mathf.Max(size, minSize);
-        return size;
-    }
+        private Vector3 FindTargetsAveragePosition()
+        {
+            var averagePos = targets.Aggregate(new Vector3(), (seed, target) => seed + target.position) / targets.Length;
+            averagePos.y = transform.position.y;
+            return averagePos;
+        }
 
-    private float FindTargetDistanceAsSize(Transform target, Vector3 desiredLocalPos)
-    {
-        if (!target || !target.gameObject || !target.gameObject.activeSelf)
-            return 0f;
+        private void ZoomOnTargetsFromPosition(Vector3 desiredPosition)
+        {
+            var requiredSize = FindCameraRequiredSize(desiredPosition);
+            _camera.orthographicSize = Mathf.SmoothDamp(_camera.orthographicSize, requiredSize, ref _zoomSpeed, dampTime);
+        }
 
-        var size = 0f;
-        var targetLocalPos = transform.InverseTransformPoint(target.position);
-        var desiredPosToTarget = targetLocalPos - desiredLocalPos;
-        size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
-        size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / _camera.aspect);
-        return size;
-    }
+        private float FindCameraRequiredSize(Vector3 desiredPosition)
+        {
+            var desiredLocalPos = transform.InverseTransformPoint(desiredPosition);
+            var size = targets.Max(target => FindTargetDistanceAsSize(target, desiredLocalPos));
+            size += screenEdgeBuffer;
+            size = Mathf.Max(size, minSize);
+            return size;
+        }
 
-    public void SetStartPositionAndSize()
-    {
-        var desiredPosition = FindTargetsAveragePosition();
-        transform.position = desiredPosition;
-        _camera.orthographicSize = FindCameraRequiredSize(desiredPosition);
+        private float FindTargetDistanceAsSize(Transform target, Vector3 desiredLocalPos)
+        {
+            if (!target || !target.gameObject || !target.gameObject.activeSelf)
+                return 0f;
+
+            var size = 0f;
+            var targetLocalPos = transform.InverseTransformPoint(target.position);
+            var desiredPosToTarget = targetLocalPos - desiredLocalPos;
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / _camera.aspect);
+            return size;
+        }
+
+        public void SetStartPositionAndSize()
+        {
+            var desiredPosition = FindTargetsAveragePosition();
+            transform.position = desiredPosition;
+            _camera.orthographicSize = FindCameraRequiredSize(desiredPosition);
+        }
     }
 }

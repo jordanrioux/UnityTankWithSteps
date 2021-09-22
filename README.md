@@ -1,137 +1,186 @@
 # Introduction
 
-The `2/camera` starts from the `1/tank-creation` branch code. The steps will guide you into creating the first draft of the camera which will have targets (e.g. the tanks) and will ensure that all targets are always showing in the camera by moving/zooming appropriately.
-
+The `3/tank-health` starts from the `2/camera` branch code. The steps will guide you into creating the UI element to display the tank health using a slider which will position in a circle around the tank.
 # Steps that have already been done
 
-1. Create a new **empty Game Object** named **CameraRig** and set:
-    * **Position** to (0, 0, 0)
-    * **Rotation** to (40, 60, 0)
-2. Drag the **Main Camera** object onto the **CameraRig** object to make it a child
-3. Set the **Main Camera** object values:
-    * **Position** to (0, 0, -65)
-    * **Rotation** to (0, 0, 0)
-5. Create a **Camera** folder in the **Scripts** folder
-5. Create a **CameraControl** script in the **Scripts/Camera** folder
-5. Add the **CameraControl** script as a component to the **CameraRig** object
-6. Double the **CameraControl** script to open it in your IDE
+1. Create a new **Slider** (UI > Slider):
+2. Select the **EventSystem** object and set:
+    * On **Standalone Input Module**:
+        * Change the **Horizontal Axis** to **HorizontalUI**
+        * Change the **Vertical Axis** to **VerticalUI**
+3. Make sure to go create the **Axes** in the **Input Manager**
+    * You can simply duplicate the **Horizontal1** and rename to **HorizontalUI**
+    * You can simply duplicate the **Vertical1** and rename to **VerticalUI**
+4. Select the **Canvas** object and set:
+    * On **Canvas Scaler** component:
+        * **Reference Pixels per Unit** to 1
+    * On **Canvas** component:
+        * **Render Mode** to **World Space**
+5. Drag the **Canvas** object onto the **Tank** object to make it a child
+6. Select the **Canvas** object and set:
+    * Under **Rect Transform**:
+        * **Position** to (0, 0.1, 0)
+        * **Width** to 3.5
+        * **Height** to 3.5
+        * **Rotation** to (90, 0, 0)
+7. Expand the **Canvas** and all of it's children
+8. Select the **HandleSlideArea** and delete it
+9. Multi-select **Slider**, **Background**, **Fill Area** and **Fill**
+10. Click on the **Anchor Presets** dropdown and **Alt-click** on the **lower-right** preset to stretch the GameObjects over the entire canvas
+    * It's the square with arrows on the left right under the **Rect Transform**
+11. Select the **Slider** object and set:
+    * On **Slider** component:
+        * Uncheck **Interactable**
+        * **Transition** to **None**
+        * **Max Value** to 100
+        * **Value** to 100
+12. Rename the **Slider** to **HealthSlider**
+13. Select the **Background** object and set:
+    * On **Image** component:
+        * **Source Image** to **Health Wheel** using the circle-select
+        * **Color** to (255, 255, 255, 80)
+14. Select the **Fill** object and set:
+    * On **Image** component:
+        * **Source Image** to **Health Wheel** using the circle-select
+        * **Color** to (255, 255, 255, 150)
+        * **Image Type** to **Filled**
+        * **Fill Origin** to **Left**
+        * Uncheck **Clockwise**
+15. Create the **UI** folder in the **Scripts** folder
+16. Create the **UIDirectionControl** script in the **Scripts/UI** folder
+16. Add the **UIDirectionControl** script as a component to the **Tank** object
+17. Double click the **UIDirectionControl** script to open it in your IDE
 
 The serialized and private fields
 ```csharp
-[SerializeField] private float dampTime = 0.2f;
-[SerializeField] private float screenEdgeBuffer = 4f;
-[SerializeField] private float minSize = 6.5f;
-[SerializeField] private Transform[] targets;
+[SerializeField] private bool useRelativeRotation = true;
 
-private UnityEngine.Camera _camera;
-private float _zoomSpeed;
-private Vector3 _moveVelocity;
+private Quaternion _relativeRotation;
 ```
 
 The Unity events
 ```csharp
-private void Awake()
+private void Start()
 {
-    _camera = GetComponentInChildren<UnityEngine.Camera>();
+    _relativeRotation = transform.parent.localRotation;
 }
 
-private void FixedUpdate()
+private void Update()
 {
-    var desiredPosition = CenterOnTargets();
-    ZoomOnTargetsFromPosition(desiredPosition);
+    if (useRelativeRotation)
+    {
+        transform.rotation = _relativeRotation;
+    }
 }
 ```
+18. Create an **empty Game Object** and name it **TankExplosion**
+19. Add an **Audio Source** component to **TankExplosion** object and set:
+    * **Audio Clip** to **Tank Explosion**
+    * Uncheck **Play on Awake**
+20. Add a **Particle System** component to **TankExplosion** and set:
+    * **Duration** to 1.05
+    * Uncheck **Looping**
+    * **Start Delay** to 0.15
+    * **Start Lifetime** to 0.9
+    * **Start Speed** to 20
+    * **Start Size** to **Random between two constants** which are 0.05 and 0.3
+    * Under **Emission**:
+        * **Rate over Time** to 0.34
+        * **Bursts** click + to add a default line
+    * Under **Renderer**:
+        * Make sure Material is set to **Default-Particle**
+21. Drag the **TankExplosion** into the **Prefabs** folder to make it a prefab
+22. Delete the **TankExplosion** object
+23. Create the **TankHealth** script in the **Scripts/Tank** folder
+24. Add the **TankHealth** script as a component to the **Tank** object
+25. Double click the **TankHealth** script to open it in your IDE
 
+The serialized and private fields
+```csharp
+[SerializeField] private float startingHealth = 100f;
+[SerializeField] private Slider slider;
+[SerializeField] private Image fillImage;
+[SerializeField] private Color fullHealthColor = Color.green;
+[SerializeField] private Color lowHealthColor = Color.red;
+[SerializeField] private GameObject explosionPrefab;
+
+private AudioSource _explosionAudio;
+private ParticleSystem _explosionParticles;
+private float _currentHealth;
+private bool _alive = true;
+```
+
+The Unity events
+```csharp
+private void Start()
+{
+    _explosionParticles = Instantiate(explosionPrefab).GetComponent<ParticleSystem>();
+    _explosionAudio = _explosionParticles.GetComponent<AudioSource>();
+    _explosionParticles.gameObject.SetActive(false);
+}
+
+private void OnEnable()
+{
+    _currentHealth = startingHealth;
+    _alive = true;
+
+    SetHealthUI();
+}
+```
 The specific code of the movement
 ```csharp
-private Vector3 CenterOnTargets()
+private void SetHealthUI()
 {
-    var desiredPosition = FindTargetsAveragePosition();
-    transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref _moveVelocity, dampTime);
-    return desiredPosition;
+    slider.value = _currentHealth;
+    fillImage.color = Color.Lerp(lowHealthColor, fullHealthColor, _currentHealth / startingHealth);
 }
 
-private Vector3 FindTargetsAveragePosition()
+public void TakeDamage(float amount)
 {
-    var averagePos = targets.Aggregate(new Vector3(), (seed, target) => seed + target.position) / targets.Length;
-    averagePos.y = transform.position.y;
-    return averagePos;
+    _currentHealth -= amount;
+    SetHealthUI();
+    
+    if (_currentHealth <= 0f && _alive)
+    {
+        OnDeath();
+    }
 }
 
-private void ZoomOnTargetsFromPosition(Vector3 desiredPosition)
+private void OnDeath()
 {
-    var requiredSize = FindCameraRequiredSize(desiredPosition);
-    _camera.orthographicSize = Mathf.SmoothDamp(_camera.orthographicSize, requiredSize, ref _zoomSpeed, dampTime);
-}
-
-private float FindCameraRequiredSize(Vector3 desiredPosition)
-{
-    var desiredLocalPos = transform.InverseTransformPoint(desiredPosition);
-    var size = targets.Max(target => FindTargetDistanceAsSize(target, desiredLocalPos));
-    size += screenEdgeBuffer;
-    size = Mathf.Max(size, minSize);
-    return size;
-}
-
-private float FindTargetDistanceAsSize(Transform target, Vector3 desiredLocalPos)
-{
-    if (!target || !target.gameObject || !target.gameObject.activeSelf)
-        return 0f;
-
-    var size = 0f;
-    var targetLocalPos = transform.InverseTransformPoint(target.position);
-    var desiredPosToTarget = targetLocalPos - desiredLocalPos;
-    size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
-    size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / _camera.aspect);
-    return size;
-}
-
-public void SetStartPositionAndSize()
-{
-    var desiredPosition = FindTargetsAveragePosition();
-    transform.position = desiredPosition;
-    _camera.orthographicSize = FindCameraRequiredSize(desiredPosition);
+    _alive = false;
+    _explosionParticles.transform.position = transform.position;
+    _explosionParticles.gameObject.SetActive(true);
+    _explosionParticles.Play();
+    
+    _explosionAudio.Play();
+    
+    gameObject.SetActive(false);
 }
 ```
 
-7. Click on the **CameraRig** object:
-    * Drag the **Tank** object to **Targets** field of the **CameraControl** script
+26. Click on the **Tank** object:
+    * For **TankHealth** script fields:
+        * Drag the **HealthSlider** object to the **Slider** field
+        * Drag the **Fill** object to the **Fill Image** field
+        * Drag the **TankExplosion** prefab to the **Explosion Prefab** field
 
+27. Select the **Tank** object and click **Overrides > Apply** to update the prefab
 # Explanation
 
-1. The **CameraRig** object act as a camera man which is holding the camera. The **CameraRig** will be moving the camera around to center on all the specified targets while the camera will be zooming in and out to show all targets in the plane.
-2. The **CameraControl** contains all the mathematics required to correctly move and zoom the camera.
-3. For the **Position**, we simply iterate through all the targets' position (e.g. all tanks) and average it to find the center of all the targets. This is easily done via Unity as the position are Vector3 and they provide operators overload to sum up all the positions (e.g. vectors) together and then divide them all by the number of targets to find the average.
-    * The code is using LINQ to provide a *one liner* for the iteration instead of the classic *foreach loop*.
-
-    If Tank1 is on the top left and Tank2 is on the bottom right, the desired position will be the average of these two positions which will be the center of the tanks.
----
-    Tank1                  
-                     
-                Center        
-                     
-                            Tank2
----
-
-4. For the **Size** (e.g. zoom), it's a bit more complicated. As the camera has been set to **Orthographic**, the zoom will be controlled by the size value. We need to find the vertical and horizontal distance from the **Center** position previously found to each target and take the highest value between the two sizes of all targets.
-
----
-    .             Tank2   
-                    |  (center to top of screen)
-                    |  Size = Distance in Y axis    
-                    | 
-    Tank1 ------- Center   
-    Size = Distance in X axis
-    (center to edge of screen)      
-
-
-    .             
----
-
-5. For the vertical size, we can directly take the distance in the Y axis which is the **target.position.y - center.position.y**.
-
-6. For the horizontal size, the distance will be equal to size multiply by the camera aspect (e.g. **distance = size * aspect**) since the camera is **Orthographic**. As we are interested in the size, the formula would be **size = distance / aspect**. The distance would be **target.position.x - center.position.x** and the aspect would be the **camera.aspect**.
-
-7. Between the two sizes, we use the highest value found and repeat the above logic for all targets in order to find which target is the farthest so we can zoom out to ensure that all targets are in the camera.
-
-8. To prevent some edge case scenarios, we add a screen buffer to act as a border around the camera to ensure the targets are not too close to the edge of the screen and we also check for a minimal value for the size to ensure the zoom doesn't get all zoomed in if all targets are nearby.
+1. To display the tank health, we will be using the **Slider** UI element. It can be customized to be a circle and non-interactable. 
+2. By default, the canvas will appear huge and out of proportion in the regard to the game world. We are setting a few settings first to bring it back to a "normal" behavior in regard to its dimension in the world and we are also adjusting it to have the proper size so it correctly fit around the tank.
+3. As we are only interested in the **Slider** behavior of the UI element, we make sure that the **Slider** is non-interactable by removing components that we don't need so we can use it as a display only (e.g. we don't want the user to be able to slide his health value as he wants).
+4. As a slider is interactable by default, there are input axes assigned by default. To ensure no suprises, we simply renamed to a proper "UI" naming such as **HorizontalUI** and **VerticalUI**.
+5. The **UIDirectionControl** is a script to determine if the component should use relative positioning or not. If we don't use this script, the slider will not turn around with the tank which would make his health move in weird ways. The script ensure that the slider is being rotated when the tank is being rotated to ensure the position is always the same and the health is easy to see.
+6. To play some effects when the tank is destroyed, we create a **TankExplosion** prefab that will be re-used in the script when the tank is taking damage and destroyed. 
+7. The **TankExplosion** prefab is simply having an **Audio Source** for the tank explosion sound and a dummy particle system. Currently, the values provided for the particle system are not important. 
+    * We will see later if we have the time to dig into the particle system to create better animations.
+8. The **TankHealth** script is responsible for holding the tank life, updating the UI elements and playing any animations or sounds. It uses a linear interpolation (lerp) to determine the correct health color to display. Its **TakeDamage** method will be re-used later on when we will be able to shoot the other tanks.
+9. You can add the following code in the **TankHealth** to check if everything is setup properly:
+```csharp
+private void Update()
+{
+    TakeDamage(1f);
+}
+```
