@@ -1,186 +1,119 @@
 # Introduction
 
-The `3/tank-health` starts from the `2/camera` branch code. The steps will guide you into creating the UI element to display the tank health using a slider which will position in a circle around the tank.
+The `4/shells` starts from the `3/tank-health` branch code. The steps will guide you into creating the shell prefab that will be used as the shooting projectile to attack the tanks.
 # Steps that have already been done
 
-1. Create a new **Slider** (UI > Slider):
-2. Select the **EventSystem** object and set:
-    * On **Standalone Input Module**:
-        * Change the **Horizontal Axis** to **HorizontalUI**
-        * Change the **Vertical Axis** to **VerticalUI**
-3. Make sure to go create the **Axes** in the **Input Manager**
-    * You can simply duplicate the **Horizontal1** and rename to **HorizontalUI**
-    * You can simply duplicate the **Vertical1** and rename to **VerticalUI**
-4. Select the **Canvas** object and set:
-    * On **Canvas Scaler** component:
-        * **Reference Pixels per Unit** to 1
-    * On **Canvas** component:
-        * **Render Mode** to **World Space**
-5. Drag the **Canvas** object onto the **Tank** object to make it a child
-6. Select the **Canvas** object and set:
-    * Under **Rect Transform**:
-        * **Position** to (0, 0.1, 0)
-        * **Width** to 3.5
-        * **Height** to 3.5
-        * **Rotation** to (90, 0, 0)
-7. Expand the **Canvas** and all of it's children
-8. Select the **HandleSlideArea** and delete it
-9. Multi-select **Slider**, **Background**, **Fill Area** and **Fill**
-10. Click on the **Anchor Presets** dropdown and **Alt-click** on the **lower-right** preset to stretch the GameObjects over the entire canvas
-    * It's the square with arrows on the left right under the **Rect Transform**
-11. Select the **Slider** object and set:
-    * On **Slider** component:
-        * Uncheck **Interactable**
-        * **Transition** to **None**
-        * **Max Value** to 100
-        * **Value** to 100
-12. Rename the **Slider** to **HealthSlider**
-13. Select the **Background** object and set:
-    * On **Image** component:
-        * **Source Image** to **Health Wheel** using the circle-select
-        * **Color** to (255, 255, 255, 80)
-14. Select the **Fill** object and set:
-    * On **Image** component:
-        * **Source Image** to **Health Wheel** using the circle-select
-        * **Color** to (255, 255, 255, 150)
-        * **Image Type** to **Filled**
-        * **Fill Origin** to **Left**
-        * Uncheck **Clockwise**
-15. Create the **UI** folder in the **Scripts** folder
-16. Create the **UIDirectionControl** script in the **Scripts/UI** folder
-16. Add the **UIDirectionControl** script as a component to the **Tank** object
-17. Double click the **UIDirectionControl** script to open it in your IDE
-
-The serialized and private fields
-```csharp
-[SerializeField] private bool useRelativeRotation = true;
-
-private Quaternion _relativeRotation;
-```
-
-The Unity events
-```csharp
-private void Start()
-{
-    _relativeRotation = transform.parent.localRotation;
-}
-
-private void Update()
-{
-    if (useRelativeRotation)
-    {
-        transform.rotation = _relativeRotation;
-    }
-}
-```
-18. Create an **empty Game Object** and name it **TankExplosion**
-19. Add an **Audio Source** component to **TankExplosion** object and set:
-    * **Audio Clip** to **Tank Explosion**
+1. Drag the **Shell** model from the **Models** folder to the **Hierarchy** panel to create a **Shell** object
+2. Add a **Capsule Collider** component to the **Shell** object and set:
+    * Check **Is Trigger**
+    * **Center** to (0, 0, 0.2)
+    * **Radius** to 0.15
+    * **Height** to 0.55
+    * **Direction** to Z-axis
+3. Add a **Rigidbody** component to the **Shell** object
+4. Add an **Light** component to **Shell** object
+5. Create an **empty Game Object** and name it **ShellExplosion**
+6. Drag the **ShellExplosion** object to the **Shell** object to make it a child
+7. Add an **Audio Source** component to **ShellExplosion** object and set:
+    * **Audio Clip** to **ShellExplosion**
     * Uncheck **Play on Awake**
-20. Add a **Particle System** component to **TankExplosion** and set:
-    * **Duration** to 1.05
+8. Add a **Particle System** component to **ShellExplosion** and set:
+    * **Duration** to 1.50
     * Uncheck **Looping**
-    * **Start Delay** to 0.15
-    * **Start Lifetime** to 0.9
-    * **Start Speed** to 20
-    * **Start Size** to **Random between two constants** which are 0.05 and 0.3
+    * **Start Delay** to 0
+    * **Start Lifetime** to 1.5
+    * **Start Speed** to 2
+    * **Start Size** to **Random between two constants** which are 1 and 2.5
     * Under **Emission**:
-        * **Rate over Time** to 0.34
+        * **Rate over Time** to 0
         * **Bursts** click + to add a default line
+            * **Count** to 8
+    * Under **Shape**:
+        * **Shape** to **Circle**
+        * **Radius** to 0.367
+        * **Radius Thickness** to 0
     * Under **Renderer**:
-        * Make sure Material is set to **Default-Particle**
-21. Drag the **TankExplosion** into the **Prefabs** folder to make it a prefab
-22. Delete the **TankExplosion** object
-23. Create the **TankHealth** script in the **Scripts/Tank** folder
-24. Add the **TankHealth** script as a component to the **Tank** object
-25. Double click the **TankHealth** script to open it in your IDE
+        * Make sure Material is set to **Explosion**
+9. Create the **ShellExplosion** script in the **Scripts/Shell** folder
+10. Add the **ShellExplosion** script as a component to the **Shell** object
+11. Double click the **ShellExplosion** script to open it in your IDE
 
 The serialized and private fields
 ```csharp
-[SerializeField] private float startingHealth = 100f;
-[SerializeField] private Slider slider;
-[SerializeField] private Image fillImage;
-[SerializeField] private Color fullHealthColor = Color.green;
-[SerializeField] private Color lowHealthColor = Color.red;
-[SerializeField] private GameObject explosionPrefab;
+[SerializeField] private LayerMask tankMask;
+[SerializeField] private ParticleSystem explosionParticles;
+[SerializeField] private AudioSource explosionAudio;
 
-private AudioSource _explosionAudio;
-private ParticleSystem _explosionParticles;
-private float _currentHealth;
-private bool _alive = true;
+[SerializeField] private float maxDamage = 100f;
+[SerializeField] private float explosionForce = 1000f;
+[SerializeField] private float maxLifeTime = 2f;
+[SerializeField] private float explosionRadius = 5f;
 ```
 
 The Unity events
 ```csharp
 private void Start()
 {
-    _explosionParticles = Instantiate(explosionPrefab).GetComponent<ParticleSystem>();
-    _explosionAudio = _explosionParticles.GetComponent<AudioSource>();
-    _explosionParticles.gameObject.SetActive(false);
+    Destroy(gameObject, maxLifeTime);
 }
 
-private void OnEnable()
+// For debugging purposes, use Gizmos to draw the collision in the Scene panel
+private void OnDrawGizmos()
 {
-    _currentHealth = startingHealth;
-    _alive = true;
-
-    SetHealthUI();
+    Gizmos.color = Color.red;
+    Gizmos.DrawWireSphere(transform.position, explosionRadius);
 }
 ```
 The specific code of the movement
 ```csharp
-private void SetHealthUI()
+private void OnTriggerEnter(Collider other)
 {
-    slider.value = _currentHealth;
-    fillImage.color = Color.Lerp(lowHealthColor, fullHealthColor, _currentHealth / startingHealth);
-}
-
-public void TakeDamage(float amount)
-{
-    _currentHealth -= amount;
-    SetHealthUI();
-    
-    if (_currentHealth <= 0f && _alive)
+    var colliders = Physics.OverlapSphere(transform.position, explosionRadius, tankMask);
+    foreach (var c in colliders)
     {
-        OnDeath();
+        var targetRigidbody = c.GetComponent<Rigidbody>();
+        targetRigidbody?.AddExplosionForce(explosionForce, transform.position, explosionRadius);
+
+        var targetHealth = targetRigidbody?.GetComponent<TankHealth>();
+        if (!targetHealth)
+            continue;
+
+        var damage = CalculateDamage(targetRigidbody.position);
+        targetHealth.TakeDamage(damage);
     }
+
+    explosionParticles.transform.parent = null;
+    explosionParticles.Play();
+    explosionAudio.Play();
+
+    Destroy(explosionParticles.gameObject, explosionParticles.main.duration);
+    Destroy(gameObject);
 }
 
-private void OnDeath()
+private float CalculateDamage(Vector3 targetPosition)
 {
-    _alive = false;
-    _explosionParticles.transform.position = transform.position;
-    _explosionParticles.gameObject.SetActive(true);
-    _explosionParticles.Play();
-    
-    _explosionAudio.Play();
-    
-    gameObject.SetActive(false);
+    // Find distance between explosion and target
+    var explosionToTarget = targetPosition - transform.position;
+    var explosionDistance = explosionToTarget.magnitude; // between 0 and radius
+
+    // If close, high damage. If far, low damage
+    var relativeDistance = (explosionRadius - explosionDistance) / explosionRadius;
+    var damage = Mathf.Max(0f, (relativeDistance * maxDamage));
+    return damage;
 }
 ```
 
-26. Click on the **Tank** object:
-    * For **TankHealth** script fields:
-        * Drag the **HealthSlider** object to the **Slider** field
-        * Drag the **Fill** object to the **Fill Image** field
-        * Drag the **TankExplosion** prefab to the **Explosion Prefab** field
+12. Click on the **Shell** object:
+    * For **ShellExplosion** script fields:
+        * Set **Tank Mask** to **Players**
+        * Drag the **ShellExplosion** child object to the **Explosion Particles** field
+        * Drag the **ShellExplosion** child object to the **Explosion Audio** field
 
-27. Select the **Tank** object and click **Overrides > Apply** to update the prefab
+13. Drag the **Shell** object into the **Prefabs** folder to make it a prefab
 # Explanation
 
-1. To display the tank health, we will be using the **Slider** UI element. It can be customized to be a circle and non-interactable. 
-2. By default, the canvas will appear huge and out of proportion in the regard to the game world. We are setting a few settings first to bring it back to a "normal" behavior in regard to its dimension in the world and we are also adjusting it to have the proper size so it correctly fit around the tank.
-3. As we are only interested in the **Slider** behavior of the UI element, we make sure that the **Slider** is non-interactable by removing components that we don't need so we can use it as a display only (e.g. we don't want the user to be able to slide his health value as he wants).
-4. As a slider is interactable by default, there are input axes assigned by default. To ensure no suprises, we simply renamed to a proper "UI" naming such as **HorizontalUI** and **VerticalUI**.
-5. The **UIDirectionControl** is a script to determine if the component should use relative positioning or not. If we don't use this script, the slider will not turn around with the tank which would make his health move in weird ways. The script ensure that the slider is being rotated when the tank is being rotated to ensure the position is always the same and the health is easy to see.
-6. To play some effects when the tank is destroyed, we create a **TankExplosion** prefab that will be re-used in the script when the tank is taking damage and destroyed. 
-7. The **TankExplosion** prefab is simply having an **Audio Source** for the tank explosion sound and a dummy particle system. Currently, the values provided for the particle system are not important. 
-    * We will see later if we have the time to dig into the particle system to create better animations.
-8. The **TankHealth** script is responsible for holding the tank life, updating the UI elements and playing any animations or sounds. It uses a linear interpolation (lerp) to determine the correct health color to display. Its **TakeDamage** method will be re-used later on when we will be able to shoot the other tanks.
-9. You can add the following code in the **TankHealth** to check if everything is setup properly:
-```csharp
-private void Update()
-{
-    TakeDamage(1f);
-}
-```
+1. We create a **Shell** object from the model provided. We add a rigidbody to ensure the physics is affecting the object and we use a capsule collider to add collision to the shell. The provided values are simply to make sure the collision is matching the shell size.
+2. A **Light** is added to the **Shell** simply for visual effects.
+3. We create a **ShellExplosion** object and make it a child to the **Shell** object. The **ShellExplosion** will be used to handle the animation and sound effect of when a shell collides and explodes so we add an audio source and a particle system to it.
+4. The **ShellExplosion** is a script to determine if a tank is hit by a shell and how much damage it should take. The logic applied is basically making a sphere around the shell impact and retrieve all the targets (e.g. tanks) in the area and apply a damage value based on the relative distance between the impact center and the tank position. A tank closer to the impact will take more damage while a tank further away will take less damage.
+5. The Gizmos are used to display a wire frame sphere of the impact/collision in the Scene panel to help out in debugging and make sure all is working well.
