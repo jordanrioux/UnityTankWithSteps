@@ -135,3 +135,4 @@ private void Fire()
 3. For the shooting, we are simply doing a few checks for all the possible scenarios. If we reach the maximum launch force, fire it automatically. If the Fire button is pressed, we initialize with the default minimum values and increase the launching force while the button is behind held. We fire the shell if the button is released. For each scenario, we also play the corresponding sound effect (e.g. charging or shooting).
 4. We are using the same logic with the **player number** to determine the input axes but we are simply using the default existing axes for now (e.g. Fire1, Fire2, etc.). You can remap them as needed.
 5. The **Shell** prefab that we have previously created will handle the the animation and sound effect for the shell explosion.
+6. The **Mesh Collider** on the **Terrain** is simply to have the shells collide and explode on contact with it.
