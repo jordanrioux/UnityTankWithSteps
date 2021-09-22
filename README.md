@@ -1,119 +1,137 @@
 # Introduction
 
-The `4/shells` starts from the `3/tank-health` branch code. The steps will guide you into creating the shell prefab that will be used as the shooting projectile to attack the tanks.
+The `5/tank-shooting` starts from the `4/shells` branch code. The steps will guide you into creating an aim slider using a slider UI element for shooting shells. The force at which the shell is launched will be increased while the button is behind held.
 # Steps that have already been done
 
-1. Drag the **Shell** model from the **Models** folder to the **Hierarchy** panel to create a **Shell** object
-2. Add a **Capsule Collider** component to the **Shell** object and set:
-    * Check **Is Trigger**
-    * **Center** to (0, 0, 0.2)
-    * **Radius** to 0.15
-    * **Height** to 0.55
-    * **Direction** to Z-axis
-3. Add a **Rigidbody** component to the **Shell** object
-4. Add an **Light** component to **Shell** object
-5. Create an **empty Game Object** and name it **ShellExplosion**
-6. Drag the **ShellExplosion** object to the **Shell** object to make it a child
-7. Add an **Audio Source** component to **ShellExplosion** object and set:
-    * **Audio Clip** to **ShellExplosion**
-    * Uncheck **Play on Awake**
-8. Add a **Particle System** component to **ShellExplosion** and set:
-    * **Duration** to 1.50
-    * Uncheck **Looping**
-    * **Start Delay** to 0
-    * **Start Lifetime** to 1.5
-    * **Start Speed** to 2
-    * **Start Size** to **Random between two constants** which are 1 and 2.5
-    * Under **Emission**:
-        * **Rate over Time** to 0
-        * **Bursts** click + to add a default line
-            * **Count** to 8
-    * Under **Shape**:
-        * **Shape** to **Circle**
-        * **Radius** to 0.367
-        * **Radius Thickness** to 0
-    * Under **Renderer**:
-        * Make sure Material is set to **Explosion**
-9. Create the **ShellExplosion** script in the **Scripts/Shell** folder
-10. Add the **ShellExplosion** script as a component to the **Shell** object
-11. Double click the **ShellExplosion** script to open it in your IDE
+1. Select the **Tank** object:
+    * Right-click on the **Tank** and choose **Create empty** and name it **FireTransform**
+    * Set the **FireTransform** values:
+        * **Position** to (0, 1.7, 1.35)
+        * **Rotation** to (350, 0, 0)
+2. Create a new **Slider** (UI > Slider) and name it **AimSlider**:
+3. Expand all the child objects of the **AimSlider** object
+    * Delete the **Background** object
+    * Delete the **Handle Slide Area** object
+4. Select the **AimSlider** and set:
+    * Uncheck **Interactable**
+    * **Transition** to **None**
+    * **Direction** to **Bottom to Top**
+    * **Min Value** to 15
+    * **Max Value** to 30
+5. Multi-select **AimSlider**, **Fill Area** and **Fill**
+6. Click on the **Anchor Presets** dropdown and **Alt-click** on the **lower-right** preset to stretch the GameObjects over the entire canvas
+    * It's the square with arrows on the left right under the **Rect Transform**
+7. Select the **Fill** object and set:
+    * On **Image**:
+        * **Source Image** to **Aim Arrow**
+8. Select the **AimSlider** object and set:
+    * On **Rect Transform**:
+        * **(X, Y, Z)** to (1, -9, -1)
+        * **(Right, Bottom)** to (1, 3)
+9. Create the **TankShooting** script in the **Scripts/Tank** folder
+10. Add the **TankShooting** script as a component to the **Tank** object
+11. Double click the **TankShooting** script to open it in your IDE
 
 The serialized and private fields
 ```csharp
-[SerializeField] private LayerMask tankMask;
-[SerializeField] private ParticleSystem explosionParticles;
-[SerializeField] private AudioSource explosionAudio;
+ [SerializeField] private Rigidbody shell;
+[SerializeField] private Transform fireTransform;
 
-[SerializeField] private float maxDamage = 100f;
-[SerializeField] private float explosionForce = 1000f;
-[SerializeField] private float maxLifeTime = 2f;
-[SerializeField] private float explosionRadius = 5f;
+[SerializeField] private AudioSource shootingAudio;
+[SerializeField] private AudioClip chargingAudioClip;
+[SerializeField] private AudioClip fireAudioClip;
+[SerializeField] private Slider aimSlider;
+[SerializeField] private float minLaunchForce = 15f;
+[SerializeField] private float maxLaunchForce = 30f;
+[SerializeField] private float maxChargeTime = 0.75f;
+[SerializeField] private int playerNumber;
+
+private bool _fired;
+private float _currentLaunchForce;
+private float _chargeSpeed;
 ```
 
 The Unity events
 ```csharp
-private void Start()
+private void OnEnable()
 {
-    Destroy(gameObject, maxLifeTime);
+    _currentLaunchForce = minLaunchForce;
 }
 
-// For debugging purposes, use Gizmos to draw the collision in the Scene panel
-private void OnDrawGizmos()
+private void Start()
 {
-    Gizmos.color = Color.red;
-    Gizmos.DrawWireSphere(transform.position, explosionRadius);
+    _chargeSpeed = (maxLaunchForce - minLaunchForce) / maxChargeTime;
+}
+
+private void Update()
+{
+    aimSlider.value = minLaunchForce;
+    UpdateAndHandleShootingState();
 }
 ```
 The specific code of the movement
 ```csharp
-private void OnTriggerEnter(Collider other)
+private void UpdateAndHandleShootingState()
 {
-    var colliders = Physics.OverlapSphere(transform.position, explosionRadius, tankMask);
-    foreach (var c in colliders)
+    // Fire the shell if we reach the maximum launch force
+    if (_currentLaunchForce >= maxLaunchForce && !_fired)
     {
-        var targetRigidbody = c.GetComponent<Rigidbody>();
-        targetRigidbody?.AddExplosionForce(explosionForce, transform.position, explosionRadius);
-
-        var targetHealth = targetRigidbody?.GetComponent<TankHealth>();
-        if (!targetHealth)
-            continue;
-
-        var damage = CalculateDamage(targetRigidbody.position);
-        targetHealth.TakeDamage(damage);
+        _currentLaunchForce = maxLaunchForce;
+        Fire();
     }
+    // When fire button is pressed, prepare the charging and play the sound
+    else if (Input.GetButtonDown($"Fire{playerNumber}"))
+    {
+        _fired = false;
+        _currentLaunchForce = minLaunchForce;
 
-    explosionParticles.transform.parent = null;
-    explosionParticles.Play();
-    explosionAudio.Play();
-
-    Destroy(explosionParticles.gameObject, explosionParticles.main.duration);
-    Destroy(gameObject);
+        // Play charging sound
+        shootingAudio.clip = chargingAudioClip;
+        shootingAudio.Play();
+    }
+    // While fire button is being held, increase the launch force
+    else if (Input.GetButton($"Fire{playerNumber}") && !_fired)
+    {
+        _currentLaunchForce += _chargeSpeed * Time.deltaTime;
+        aimSlider.value = _currentLaunchForce;
+    }
+    // When fire button is released, fire the shell
+    else if (Input.GetButtonUp($"Fire{playerNumber}") && !_fired)
+    {
+        Fire();
+    }
 }
 
-private float CalculateDamage(Vector3 targetPosition)
+private void Fire()
 {
-    // Find distance between explosion and target
-    var explosionToTarget = targetPosition - transform.position;
-    var explosionDistance = explosionToTarget.magnitude; // between 0 and radius
+    _fired = true;
+    var shellInstance = Instantiate(shell, fireTransform.position, fireTransform.rotation);
+    shellInstance.velocity = fireTransform.forward * _currentLaunchForce;
 
-    // If close, high damage. If far, low damage
-    var relativeDistance = (explosionRadius - explosionDistance) / explosionRadius;
-    var damage = Mathf.Max(0f, (relativeDistance * maxDamage));
-    return damage;
+    // Play shooting sound
+    shootingAudio.clip = fireAudioClip;
+    shootingAudio.Play();
+
+    _currentLaunchForce = minLaunchForce;
 }
 ```
 
-12. Click on the **Shell** object:
-    * For **ShellExplosion** script fields:
-        * Set **Tank Mask** to **Players**
-        * Drag the **ShellExplosion** child object to the **Explosion Particles** field
-        * Drag the **ShellExplosion** child object to the **Explosion Audio** field
+12. Click on the **Tank** object:
+    * For **TankShooting** script fields:
+        * Drag the **Shell** prefab to the **Shell** field
+        * Drag the **FireTransform** object to the **Fire Transform** field
+        * Drag the **AimSlider** object to the **Aim Slider** field
+        * Drag the second audio source of the tank (the one with no audio assigned) to the **Shooting Audio** field
+        * Set the **Charging Clip** to **Shot Charging**
+        * Set the **Fire Clip** to **Shot Firing**
 
-13. Drag the **Shell** object into the **Prefabs** folder to make it a prefab
+13. Make sure to save the Tank prefab
+14. Select the **Terrain** object and add a **Mesh Collider** to it
+
 # Explanation
 
-1. We create a **Shell** object from the model provided. We add a rigidbody to ensure the physics is affecting the object and we use a capsule collider to add collision to the shell. The provided values are simply to make sure the collision is matching the shell size.
-2. A **Light** is added to the **Shell** simply for visual effects.
-3. We create a **ShellExplosion** object and make it a child to the **Shell** object. The **ShellExplosion** will be used to handle the animation and sound effect of when a shell collides and explodes so we add an audio source and a particle system to it.
-4. The **ShellExplosion** is a script to determine if a tank is hit by a shell and how much damage it should take. The logic applied is basically making a sphere around the shell impact and retrieve all the targets (e.g. tanks) in the area and apply a damage value based on the relative distance between the impact center and the tank position. A tank closer to the impact will take more damage while a tank further away will take less damage.
-5. The Gizmos are used to display a wire frame sphere of the impact/collision in the Scene panel to help out in debugging and make sure all is working well.
+1. To determine the spawning of the shells, we will be using an empty game object **FireTransform**. This will allow us to move the object easily via the editor and the code will simply use its position and rotation to know where the bullet needs to be spawn.
+2. We use a **Slider** UI element to present the growing arrow to indicate the launching force. We simply set the values to position it in front of the tank and grow in the proper direction. The graphics are done using a simple 2D image.
+3. For the shooting, we are simply doing a few checks for all the possible scenarios. If we reach the maximum launch force, fire it automatically. If the Fire button is pressed, we initialize with the default minimum values and increase the launching force while the button is behind held. We fire the shell if the button is released. For each scenario, we also play the corresponding sound effect (e.g. charging or shooting).
+4. We are using the same logic with the **player number** to determine the input axes but we are simply using the default existing axes for now (e.g. Fire1, Fire2, etc.). You can remap them as needed.
+5. The **Shell** prefab that we have previously created will handle the the animation and sound effect for the shell explosion.
