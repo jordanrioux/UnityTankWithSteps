@@ -518,6 +518,18 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1960713560, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
+      propertyPath: m_Value
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1960713560, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
+      propertyPath: m_MaxValue
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1960713560, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
+      propertyPath: m_MinValue
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 7408083380323702675, guid: 19e9ed291a6764630ae5cb8a595c24a1, type: 3}
       propertyPath: m_RootOrder
       value: 1
