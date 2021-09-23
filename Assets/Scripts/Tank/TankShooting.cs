@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,12 +14,13 @@ namespace Tank
         [SerializeField] private Slider aimSlider;
         [SerializeField] private float minLaunchForce = 15f;
         [SerializeField] private float maxLaunchForce = 30f;
-        [SerializeField] private float maxChargeTime = 0.75f;
-        [SerializeField] private int playerNumber;
+        [SerializeField] private float maxChargeTime = 0.75f;        
 
         private bool _fired;
         private float _currentLaunchForce;
         private float _chargeSpeed;
+
+        public int PlayerNumber { get; set; }
 
         private void OnEnable()
         {
@@ -48,7 +47,7 @@ namespace Tank
                 Fire();
             }
             // When fire button is pressed, prepare the charging and play the sound
-            else if (Input.GetButtonDown($"Fire{playerNumber}"))
+            else if (Input.GetButtonDown($"Fire{PlayerNumber}"))
             {
                 _fired = false;
                 _currentLaunchForce = minLaunchForce;
@@ -58,13 +57,13 @@ namespace Tank
                 shootingAudio.Play();
             }
             // While fire button is being held, increase the launch force
-            else if (Input.GetButton($"Fire{playerNumber}") && !_fired)
+            else if (Input.GetButton($"Fire{PlayerNumber}") && !_fired)
             {
                 _currentLaunchForce += _chargeSpeed * Time.deltaTime;
                 aimSlider.value = _currentLaunchForce;
             }
             // When fire button is released, fire the shell
-            else if (Input.GetButtonUp($"Fire{playerNumber}") && !_fired)
+            else if (Input.GetButtonUp($"Fire{PlayerNumber}") && !_fired)
             {
                 Fire();
             }

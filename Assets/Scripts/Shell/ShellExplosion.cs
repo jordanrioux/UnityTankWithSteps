@@ -35,11 +35,9 @@ namespace Shell
             {
                 var targetRigidbody = c.GetComponent<Rigidbody>();
                 targetRigidbody?.AddExplosionForce(explosionForce, transform.position, explosionRadius);
-
                 var targetHealth = targetRigidbody?.GetComponent<TankHealth>();
                 if (!targetHealth)
                     continue;
-
                 var damage = CalculateDamage(targetRigidbody.position);
                 targetHealth.TakeDamage(damage);
             }

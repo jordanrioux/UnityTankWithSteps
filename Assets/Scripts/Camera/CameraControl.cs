@@ -8,11 +8,12 @@ namespace Camera
         [SerializeField] private float dampTime = 0.2f;
         [SerializeField] private float screenEdgeBuffer = 4f;
         [SerializeField] private float minSize = 6.5f;
-        [SerializeField] private Transform[] targets;
-
+        
         private UnityEngine.Camera _camera;
         private float _zoomSpeed;
         private Vector3 _moveVelocity;
+
+        public Transform[] Targets { get; set; }
 
         private void Awake()
         {
@@ -34,7 +35,7 @@ namespace Camera
 
         private Vector3 FindTargetsAveragePosition()
         {
-            var averagePos = targets.Aggregate(new Vector3(), (seed, target) => seed + target.position) / targets.Length;
+            var averagePos = Targets.Aggregate(new Vector3(), (seed, target) => seed + target.position) / Targets.Length;
             averagePos.y = transform.position.y;
             return averagePos;
         }
@@ -48,7 +49,7 @@ namespace Camera
         private float FindCameraRequiredSize(Vector3 desiredPosition)
         {
             var desiredLocalPos = transform.InverseTransformPoint(desiredPosition);
-            var size = targets.Max(target => FindTargetDistanceAsSize(target, desiredLocalPos));
+            var size = Targets.Max(target => FindTargetDistanceAsSize(target, desiredLocalPos));
             size += screenEdgeBuffer;
             size = Mathf.Max(size, minSize);
             return size;

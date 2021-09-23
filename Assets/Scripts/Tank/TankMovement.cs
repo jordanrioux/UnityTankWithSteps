@@ -9,14 +9,15 @@ namespace Tank
         [SerializeField] private float pitchRange = 0.2f;
         [SerializeField] private AudioSource movementAudio;
         [SerializeField] private AudioClip engineDrivingAudioClip;
-        [SerializeField] private AudioClip engineIdleAudioClip;
-        [SerializeField] private int playerNumber;
+        [SerializeField] private AudioClip engineIdleAudioClip;        
 
         private Rigidbody _rigidbody;
         private float _movementInputValue;
         private float _turnInputValue;
-        private float _originalPitch; 
-    
+        private float _originalPitch;
+
+        public int PlayerNumber { get; set; }
+
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
@@ -49,8 +50,8 @@ namespace Tank
         {
             // Gets the corresponding input axis based on the player number: Vertical1, Vertical2, etc.
             // The axes need to be created to be available: Edit > Project Settings > Input Manager
-            _movementInputValue = Input.GetAxis($"Vertical{playerNumber}");
-            _turnInputValue = Input.GetAxis($"Horizontal{playerNumber}");
+            _movementInputValue = Input.GetAxis($"Vertical{PlayerNumber}");
+            _turnInputValue = Input.GetAxis($"Horizontal{PlayerNumber}");
             PlayAudio();
         }
     
