@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6603294586161968743}
   - component: {fileID: 6603294586161968738}
   - component: {fileID: 6603294586161968741}
+  - component: {fileID: 5061707663506659611}
   m_Layer: 0
   m_Name: TankExplosion
   m_TagString: Untagged
@@ -4959,3 +4960,20 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!114 &5061707663506659611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6603294586161968742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  visible: 0
+  m_AssetId: 9482be0e814f14514a6b311d3f95b6a7
+  hasSpawned: 0

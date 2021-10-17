@@ -1,9 +1,10 @@
+using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Tank
 {
-    public class TankHealth : MonoBehaviour
+    public class TankHealth : NetworkBehaviour
     {
         [SerializeField] private float startingHealth = 100f;
         [SerializeField] private Slider slider;
@@ -12,27 +13,30 @@ namespace Tank
         [SerializeField] private Color lowHealthColor = Color.red;
         [SerializeField] private GameObject explosionPrefab;
 
+        [SyncVar(hook = "OnChangeHealth")]
+        private float _currentHealth;
+        
         private AudioSource _explosionAudio;
         private ParticleSystem _explosionParticles;
-        private float _currentHealth;
-        private bool _alive = true;
+        private bool Alive => _currentHealth <= 0f;
 
         private void Start()
         {
             _explosionParticles = Instantiate(explosionPrefab).GetComponent<ParticleSystem>();
             _explosionAudio = _explosionParticles.GetComponent<AudioSource>();
             _explosionParticles.gameObject.SetActive(false);
-        }
-
-        private void OnEnable()
-        {
+          
             _currentHealth = startingHealth;
-            _alive = true;
-
-            SetHealthUI();
         }
 
-        private void SetHealthUI()
+        private void OnChangeHealth(float oldValue, float newValue)
+        {
+            slider.value = _currentHealth;
+            fillImage.color = Color.Lerp(lowHealthColor, fullHealthColor, _currentHealth / startingHealth);            
+        }
+
+        [ClientRpc]
+        private void RpcSetHealthUi()
         {
             slider.value = _currentHealth;
             fillImage.color = Color.Lerp(lowHealthColor, fullHealthColor, _currentHealth / startingHealth);
@@ -40,18 +44,16 @@ namespace Tank
 
         public void TakeDamage(float amount)
         {
-            _currentHealth -= amount;
-            SetHealthUI();
-
-            if (_currentHealth <= 0f && _alive)
+            _currentHealth -= amount;            
+            if (Alive)
             {
-                OnDeath();
+                RpcOnDeath();
             }
         }
-
-        private void OnDeath()
+        
+        [ClientRpc]
+        private void RpcOnDeath()
         {
-            _alive = false;
             _explosionParticles.transform.position = transform.position;
             _explosionParticles.gameObject.SetActive(true);
             _explosionParticles.Play();

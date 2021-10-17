@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Camera;
+using Mirror;
+using Shell;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Tank
 { 
-    public class TankShooting : MonoBehaviour
+    public class TankShooting : NetworkBehaviour
     {
-        [SerializeField] private Rigidbody shell;
+        [SerializeField] private GameObject shell;
         [SerializeField] private Transform fireTransform;
 
         [SerializeField] private AudioSource shootingAudio;
@@ -18,7 +21,7 @@ namespace Tank
         [SerializeField] private float maxLaunchForce = 30f;
         [SerializeField] private float maxChargeTime = 0.75f;
         [SerializeField] private int playerNumber;
-
+        
         private bool _fired;
         private float _currentLaunchForce;
         private float _chargeSpeed;
@@ -35,6 +38,8 @@ namespace Tank
 
         private void Update()
         {
+            if (!isLocalPlayer) return;
+            
             aimSlider.value = minLaunchForce;
             UpdateAndHandleShootingState();
         }
@@ -73,14 +78,21 @@ namespace Tank
         private void Fire()
         {
             _fired = true;
-            var shellInstance = Instantiate(shell, fireTransform.position, fireTransform.rotation);
-            shellInstance.velocity = fireTransform.forward * _currentLaunchForce;
+            OnFireCommand(_currentLaunchForce);
 
             // Play shooting sound
             shootingAudio.clip = fireAudioClip;
             shootingAudio.Play();
 
             _currentLaunchForce = minLaunchForce;
+        }
+
+        [Command]
+        private void OnFireCommand(float currentLaunchForce)
+        {
+            var shellInstance = Instantiate(shell, fireTransform.position, fireTransform.rotation);
+            shellInstance.GetComponent<ShellExplosion>().launchForce = currentLaunchForce;
+            NetworkServer.Spawn(shellInstance);
         }
     }
 }

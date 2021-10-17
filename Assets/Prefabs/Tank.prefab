@@ -568,10 +568,10 @@ MonoBehaviour:
   m_FillRect: {fileID: 1270842827}
   m_HandleRect: {fileID: 0}
   m_Direction: 2
-  m_MinValue: 0
-  m_MaxValue: 1
+  m_MinValue: 15
+  m_MaxValue: 30
   m_WholeNumbers: 0
-  m_Value: 1
+  m_Value: 15
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -704,6 +704,9 @@ GameObject:
   - component: {fileID: 7408083380807315620}
   - component: {fileID: 7408083380057561394}
   - component: {fileID: 7408083380057561395}
+  - component: {fileID: 1625063226881593041}
+  - component: {fileID: 8385489285490325364}
+  - component: {fileID: 8441716901375512478}
   m_Layer: 6
   m_Name: Tank
   m_TagString: Untagged
@@ -766,7 +769,7 @@ AudioSource:
   m_GameObject: {fileID: 7408083380323797619}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5317804960214930650, guid: d9e12cab5ad2a4badb9d0f4438955284, type: 2}
   m_audioClip: {fileID: 8300000, guid: 4932ab25b84dd7649b80af68a9660ddc, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
@@ -862,7 +865,7 @@ AudioSource:
   m_GameObject: {fileID: 7408083380323797619}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -4772484710092739664, guid: d9e12cab5ad2a4badb9d0f4438955284, type: 2}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -961,6 +964,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1030789d03f6f48359a2165824dbeb35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
   speed: 12
   turnSpeed: 180
   pitchRange: 0.2
@@ -968,6 +973,7 @@ MonoBehaviour:
   engineDrivingAudioClip: {fileID: 8300000, guid: d7ca9fb5aa30155449192b23d7fb3336, type: 3}
   engineIdleAudioClip: {fileID: 8300000, guid: 4932ab25b84dd7649b80af68a9660ddc, type: 3}
   playerNumber: 1
+  cameraPrefab: {fileID: 5494349125039355297, guid: 067fbe64a2f564de581db8ce5f9ac256, type: 3}
 --- !u!114 &7408083380057561394
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -980,6 +986,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d745f1eacea946f2bf7d3d43c5a048e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
   startingHealth: 100
   slider: {fileID: 1821313131}
   fillImage: {fileID: 1709204603}
@@ -998,7 +1006,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9514c8f736a4b02b42c047eedecac8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shell: {fileID: 2163698166807620712, guid: 4611f73610e82491383636376a230939, type: 3}
+  syncMode: 0
+  syncInterval: 0.1
+  shell: {fileID: 2163698166807587533, guid: 4611f73610e82491383636376a230939, type: 3}
   fireTransform: {fileID: 2068504990}
   shootingAudio: {fileID: 7065544486327879226}
   chargingAudioClip: {fileID: 8300000, guid: c17f124fcdc0f5446a72f793898bd74b, type: 3}
@@ -1008,6 +1018,74 @@ MonoBehaviour:
   maxLaunchForce: 30
   maxChargeTime: 0.75
   playerNumber: 1
+--- !u!114 &1625063226881593041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7408083380323797619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  visible: 0
+  m_AssetId: 19e9ed291a6764630ae5cb8a595c24a1
+  hasSpawned: 0
+--- !u!114 &8385489285490325364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7408083380323797619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f74aedd71d9a4f55b3ce499326d45fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  clientAuthority: 1
+  sendInterval: 0.05
+  syncPosition: 1
+  syncRotation: 1
+  syncScale: 0
+  interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 1
+  bufferTimeMultiplier: 3
+  bufferSizeLimit: 64
+  catchupThreshold: 6
+  catchupMultiplier: 0.1
+  showGizmos: 0
+  showOverlay: 0
+  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+--- !u!114 &8441716901375512478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7408083380323797619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83392ae5c1b731446909f252fd494ae4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  target: {fileID: 7408083380807315621}
+  clientAuthority: 0
+  syncVelocity: 1
+  clearVelocity: 0
+  velocitySensitivity: 0.1
+  syncAngularVelocity: 1
+  clearAngularVelocity: 0
+  angularVelocitySensitivity: 0.1
 --- !u!1 &7408083380323797621
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using Tank;
 using UnityEngine;
 
 namespace Shell
 { 
-    public class ShellExplosion : MonoBehaviour
+    public class ShellExplosion : NetworkBehaviour
     {
         [SerializeField] private LayerMask tankMask;
         [SerializeField] private ParticleSystem explosionParticles;
@@ -16,9 +17,16 @@ namespace Shell
         [SerializeField] private float maxLifeTime = 2f;
         [SerializeField] private float explosionRadius = 5f;
 
+        [SyncVar] public float launchForce;
+        
+        public override void OnStartServer()
+        {
+            Invoke(nameof(DestroySelf), maxLifeTime);
+        }
+
         private void Start()
         {
-            Destroy(gameObject, maxLifeTime);
+            GetComponent<Rigidbody>().velocity = transform.forward * launchForce;
         }
 
         // For debugging purposes, use Gizmos to draw the collision in the Scene panel
@@ -30,13 +38,17 @@ namespace Shell
 
         private void OnTriggerEnter(Collider other)
         {
+            if (!isServer) return;
+            
             var colliders = Physics.OverlapSphere(transform.position, explosionRadius, tankMask);
             foreach (var c in colliders)
             {
                 var targetRigidbody = c.GetComponent<Rigidbody>();
-                targetRigidbody?.AddExplosionForce(explosionForce, transform.position, explosionRadius);
+                if (!targetRigidbody)
+                    continue;
+                targetRigidbody.AddExplosionForce(explosionForce, transform.position, explosionRadius);
 
-                var targetHealth = targetRigidbody?.GetComponent<TankHealth>();
+                var targetHealth = targetRigidbody.GetComponent<TankHealth>();
                 if (!targetHealth)
                     continue;
 
@@ -44,14 +56,15 @@ namespace Shell
                 targetHealth.TakeDamage(damage);
             }
 
-            explosionParticles.transform.parent = null;
-            explosionParticles.Play();
-            explosionAudio.Play();
-
-            Destroy(explosionParticles.gameObject, explosionParticles.main.duration);
-            Destroy(gameObject);
+            RpcDieOnClient();
         }
 
+        [Server]
+        private void DestroySelf()
+        {
+            NetworkServer.Destroy(gameObject);
+        }
+        
         private float CalculateDamage(Vector3 targetPosition)
         {
             // Find distance between explosion and target
@@ -62,6 +75,19 @@ namespace Shell
             var relativeDistance = (explosionRadius - explosionDistance) / explosionRadius;
             var damage = Mathf.Max(0f, (relativeDistance * maxDamage));
             return damage;
+        }
+        
+        [ClientRpc]
+        private void RpcDieOnClient()
+        {
+            explosionParticles.transform.parent = null;
+            explosionParticles.Play();
+            explosionAudio.Play();
+
+            Destroy(explosionParticles.gameObject, explosionParticles.main.duration);
+            Destroy(gameObject);
+            
+            NetworkServer.Destroy(gameObject);
         }
     }
 }

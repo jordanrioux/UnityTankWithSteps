@@ -13,7 +13,14 @@ namespace Camera
         private UnityEngine.Camera _camera;
         private float _zoomSpeed;
         private Vector3 _moveVelocity;
+        private CameraControl _cameraRig;
 
+        public Transform[] Targets
+        {
+            get => targets;
+            set => targets = value;
+        }
+        
         private void Awake()
         {
             _camera = GetComponentInChildren<UnityEngine.Camera>();

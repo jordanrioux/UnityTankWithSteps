@@ -1,8 +1,10 @@
+using Camera;
+using Mirror;
 using UnityEngine;
 
 namespace Tank
 {
-    public class TankMovement : MonoBehaviour
+    public class TankMovement : NetworkBehaviour
     {
         [SerializeField] private float speed = 12f;
         [SerializeField] private float turnSpeed = 180f;
@@ -11,11 +13,13 @@ namespace Tank
         [SerializeField] private AudioClip engineDrivingAudioClip;
         [SerializeField] private AudioClip engineIdleAudioClip;
         [SerializeField] private int playerNumber;
-
+        [SerializeField] private GameObject cameraPrefab;        
+        
         private Rigidbody _rigidbody;
         private float _movementInputValue;
         private float _turnInputValue;
-        private float _originalPitch; 
+        private float _originalPitch;
+        private CameraControl _cameraControl;
     
         private void Awake()
         {
@@ -33,7 +37,14 @@ namespace Tank
         {
             _rigidbody.isKinematic = true;
         }
-
+        
+        public override void OnStartLocalPlayer()
+        {
+            _cameraControl = Instantiate(cameraPrefab).GetComponent<CameraControl>();
+            var target = new[] { gameObject.transform };
+            _cameraControl.Targets = target;
+        }
+        
         private void Start()
         {
             _originalPitch = movementAudio.pitch;
@@ -41,16 +52,22 @@ namespace Tank
 
         private void FixedUpdate()
         {
+            if (!isLocalPlayer) return;
+            
             Move();
             Turn();
         }
 
         private void Update()
         {
+            if (!isLocalPlayer) return;
+            
             // Gets the corresponding input axis based on the player number: Vertical1, Vertical2, etc.
             // The axes need to be created to be available: Edit > Project Settings > Input Manager
             _movementInputValue = Input.GetAxis($"Vertical{playerNumber}");
             _turnInputValue = Input.GetAxis($"Horizontal{playerNumber}");
+            
+            // NOTE: Currently, audio will be playing on the client itself but maybe audio should be played across all tanks for all clients
             PlayAudio();
         }
     
